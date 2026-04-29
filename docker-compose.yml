@@ -5,7 +5,6 @@ services:
     build:
       context: .
       dockerfile: .docker/php/Dockerfile
-    container_name: laravel_app
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
@@ -22,13 +21,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - laravel
 
   # ─── NGINX ─────────────────────────────────────────────────────────────────
   nginx:
     image: nginx:1.25-alpine
-    container_name: laravel_nginx
     restart: unless-stopped
     ports:
       - "${APP_PORT:-80}:80"
@@ -37,13 +33,10 @@ services:
       - ./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app
-    networks:
-      - laravel
 
   # ─── POSTGRESQL ────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: laravel_postgres
     restart: unless-stopped
     ports:
       - "${DB_PORT:-5432}:5432"
@@ -58,13 +51,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - laravel
 
   # ─── PGADMIN ───────────────────────────────────────────────────────────────
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: laravel_pgadmin
     restart: unless-stopped
     ports:
       - "${PGADMIN_PORT:-5050}:80"
@@ -75,13 +65,10 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - postgres
-    networks:
-      - laravel
 
   # ─── REDIS ─────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: laravel_redis
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
@@ -92,15 +79,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - laravel
 
   # ─── QUEUE WORKER ──────────────────────────────────────────────────────────
   queue:
     build:
       context: .
       dockerfile: .docker/php/Dockerfile
-    container_name: laravel_queue
     restart: unless-stopped
     working_dir: /var/www/html
     command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
@@ -109,15 +93,12 @@ services:
     depends_on:
       - app
       - redis
-    networks:
-      - laravel
 
   # ─── SCHEDULER ─────────────────────────────────────────────────────────────
   scheduler:
     build:
       context: .
       dockerfile: .docker/php/Dockerfile
-    container_name: laravel_scheduler
     restart: unless-stopped
     working_dir: /var/www/html
     command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
@@ -125,35 +106,28 @@ services:
       - .:/var/www/html
     depends_on:
       - app
-    networks:
-      - laravel
 
   # ─── MAILPIT ───────────────────────────────────────────────────────────────
   mailpit:
     image: axllent/mailpit:latest
-    container_name: laravel_mailpit
     restart: unless-stopped
     ports:
       - "${MAIL_PORT:-1025}:1025"
       - "${MAILPIT_UI_PORT:-8025}:8025"
-    networks:
-      - laravel
 
   # ─── NODE / VITE ───────────────────────────────────────────────────────────
   node:
     image: oven/bun:1
-    container_name: laravel_node
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
     ports:
       - "${VITE_PORT:-5173}:5173"
     command: sh -c "bun install && bun run dev -- --host"
-    networks:
-      - laravel
 
 networks:
-  laravel:
+  default:
+    name: laravel-starter-kit-network 
     driver: bridge
 
 volumes:
