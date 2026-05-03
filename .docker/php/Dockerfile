@@ -2,6 +2,8 @@ FROM php:8.5-rc-fpm
 
 # System dependencies + Playwright/Chromium system libs
 RUN apt-get update && apt-get install -y \
+    aspell \
+    aspell-en \
     curl \
     git \
     unzip \

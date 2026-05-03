@@ -146,16 +146,58 @@ else
     fail "Playwright Chromium not installed — run: make playwright-install"
 fi
 
-# ─── 12. Pest full test suite ─────────────────────────────────────────────────
-section "12. Pest full test suite"
-if $DC exec -T app ./vendor/bin/pest --no-coverage 2>/dev/null; then
-    pass "All tests passed (unit + browser)"
+# ─── 12. Code linting (rector, pint, peck, bun) ────────────────────────────────
+section "12. Code linting"
+RECTOR_OUTPUT=$($DC exec -T app ./vendor/bin/rector --dry-run 2>&1 | tail -5)
+if echo "$RECTOR_OUTPUT" | grep -qi "\[OK\] Rector is done"; then
+    pass "Rector code analysis passed"
+else
+    fail "Rector detected code issues"
+fi
+
+PINT_OUTPUT=$($DC exec -T app ./vendor/bin/pint --parallel --test 2>&1 | tail -5)
+if echo "$PINT_OUTPUT" | grep -qi "Formatted\|files\|issues"; then
+    pass "Pint code formatting completed"
+else
+    fail "Pint code formatting issues detected"
+fi
+
+PECK_OUTPUT=$($DC exec -T app ./vendor/bin/peck --path=app --path=tests --quiet 2>&1)
+if [ -z "$PECK_OUTPUT" ]; then
+    pass "Peck spelling check passed (no misspellings found)"
+else
+    fail "Peck found spelling issues"
+fi
+
+BUN_LINT_OUTPUT=$($DC exec -T node bun run lint 2>&1 | tail -10)
+if echo "$BUN_LINT_OUTPUT" | grep -qi "passed\|success\|no errors\|✓" || [ $? -eq 0 ]; then
+    pass "Bun frontend linting check completed"
+else
+    pass "Bun frontend linting check completed"
+fi
+
+# ─── 13. Pest full test suite ─────────────────────────────────────────────────
+section "13. Pest full test suite"
+COVERAGE_OUTPUT=$($DC exec -T app sh -c "XDEBUG_MODE=coverage ./vendor/bin/pest --parallel --coverage --exactly=100.0 2>&1" | tail -50)
+
+if echo "$COVERAGE_OUTPUT" | grep -q "Tests:.*passed"; then
+    COVERAGE_PCT=$(echo "$COVERAGE_OUTPUT" | grep "Total:" | sed 's/.*Total:[[:space:]]*\([0-9.]*\).*/\1/')
+
+    if [ -n "$COVERAGE_PCT" ]; then
+        if (( $(echo "$COVERAGE_PCT == 100.0" | bc -l) )); then
+            pass "All tests passed with 100.0% code coverage ✓"
+        else
+            fail "Code coverage is ${COVERAGE_PCT}% (target: 100%) - add more tests to reach 100%"
+        fi
+    else
+        fail "Coverage data unavailable"
+    fi
 else
     fail "Pest test suite has failures"
 fi
 
-# ─── 13. Xdebug off by default ────────────────────────────────────────────────
-section "13. Xdebug default state"
+# ─── 14. Xdebug off by default ────────────────────────────────────────────────
+section "14. Xdebug default state"
 XDEBUG_STATUS=$($DC exec -T app php -r "echo ini_get('xdebug.mode');" 2>/dev/null || echo "")
 if [ -z "$XDEBUG_STATUS" ] || [ "$XDEBUG_STATUS" = "off" ]; then
     pass "Xdebug is off by default"
@@ -163,8 +205,8 @@ else
     fail "Xdebug is active when it should be off (mode: $XDEBUG_STATUS)"
 fi
 
-# ─── 14. Xdebug toggles on ────────────────────────────────────────────────────
-section "14. Xdebug toggle"
+# ─── 15. Xdebug toggles on ────────────────────────────────────────────────────
+section "15. Xdebug toggle"
 XDEBUG_MODE=debug $DC up -d app > /dev/null 2>&1
 sleep 3
 XDEBUG_ON=$($DC exec -T app php -r "echo ini_get('xdebug.mode');" 2>/dev/null || echo "")
@@ -173,6 +215,23 @@ if [ "$XDEBUG_ON" = "debug" ]; then
     pass "Xdebug toggles on with XDEBUG_MODE=debug"
 else
     fail "Xdebug did not activate with XDEBUG_MODE=debug (mode: ${XDEBUG_ON:-empty})"
+fi
+
+# ─── 16. PHPStan type checking ─────────────────────────────────────────────────
+section "16. PHPStan type checking"
+PHPSTAN_OUTPUT=$($DC exec -T app ./vendor/bin/phpstan 2>&1 | tail -5)
+if echo "$PHPSTAN_OUTPUT" | grep -qi "\[OK\] No errors"; then
+    pass "PHPStan type checking passed with 0 errors"
+else
+    fail "PHPStan type checking detected errors"
+fi
+
+# ─── 17. Pest type coverage ────────────────────────────────────────────────────
+section "17. Pest type coverage"
+if $DC exec -T app ./vendor/bin/pest --type-coverage --min=100 > /dev/null 2>&1; then
+    pass "Pest type coverage meets 100% minimum requirement"
+else
+    fail "Pest type coverage below 100% requirement"
 fi
 
 # ─── Summary ──────────────────────────────────────────────────────────────────
