@@ -100,70 +100,9 @@ Add a new server in pgAdmin pointing to host `postgres`, port `5432`.
 
 ---
 
-## Makefile Reference
+## Makefile Commands
 
-### Lifecycle
-
-| Command | Description |
-| :--- | :--- |
-| `make up` | Start all containers |
-| `make down` | Stop all containers |
-| `make build` | Rebuild images from scratch |
-| `make restart` | Restart all containers |
-| `make prune` | Stop containers and delete all volumes |
-
-### Development
-
-| Command | Description |
-| :--- | :--- |
-| `make setup` | Full install: composer, migrations, assets |
-| `make shell` | Open bash inside the app container |
-| `make artisan <cmd>` | Run any artisan command |
-| `make composer <cmd>` | Run any composer command |
-| `make migrate` | Run pending migrations |
-| `make fresh` | Fresh migration with seeders |
-| `make seed` | Run database seeders |
-
-### Testing
-
-| Command | Description |
-| :--- | :--- |
-| `make test` | Run full Pest test suite |
-| `make test-coverage` | Run Pest with 100% coverage requirement |
-| `make test-types` | Run PHPStan type checking |
-| `make test-type-coverage` | Run Pest type coverage at 100% minimum |
-
-### Linting
-
-| Command | Description |
-| :--- | :--- |
-| `make lint` | Fix: run Rector, Pint, Peck, and Bun lint |
-| `make lint-check` | Check only: dry-run all linters without writing |
-
-### Frontend
-
-| Command | Description |
-| :--- | :--- |
-| `make bun-dev` | Start Vite dev server |
-| `make bun-build` | Build production assets |
-| `make bun <cmd>` | Run any bun command |
-
-### Debugging
-
-| Command | Description |
-| :--- | :--- |
-| `make debug-on` | Restart app container with Xdebug enabled (port 9003) |
-| `make debug-off` | Restart app container with Xdebug disabled |
-| `make logs` | Tail logs from all containers |
-| `make logs-app` | Tail app container logs |
-| `make logs-nginx` | Tail nginx logs |
-| `make logs-meilisearch` | Tail Meilisearch logs |
-
-### Playwright
-
-| Command | Description |
-| :--- | :--- |
-| `make playwright-install` | Reinstall Playwright npm package and Chromium |
+Run `make help` to see all available make commands.
 
 ---
 

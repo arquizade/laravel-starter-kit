@@ -1,6 +1,6 @@
 DC = docker compose
 
-.PHONY: up down build restart shell artisan composer setup migrate seed fresh bun bun-dev bun-build debug-on debug-off logs logs-app logs-nginx prune playwright-install
+.PHONY: up down build restart shell artisan composer setup migrate seed fresh bun bun-dev bun-build debug-on debug-off logs logs-app logs-nginx prune playwright-install help
 
 # ─── Lifecycle ────────────────────────────────────────────────────────────────
 up:
@@ -81,6 +81,30 @@ logs-nginx:
 # ─── Cleanup ──────────────────────────────────────────────────────────────────
 prune:
 	$(DC) down -v --remove-orphans
+
+help:
+	@echo "Available make commands:"
+	@echo "  up          - Start all containers"
+	@echo "  down        - Stop all containers"
+	@echo "  build       - Rebuild images"
+	@echo "  restart     - Restart containers"
+	@echo "  shell       - Open bash in app container"
+	@echo "  artisan     - Run artisan command"
+	@echo "  composer    - Run composer command"
+	@echo "  setup       - Full setup: composer, migrations, assets"
+	@echo "  migrate     - Run pending migrations"
+	@echo "  seed        - Run database seeders"
+	@echo "  fresh       - Fresh migration with seeders"
+	@echo "  bun         - Run bun command"
+	@echo "  bun-dev     - Start Vite dev server"
+	@echo "  bun-build   - Build production assets"
+	@echo "  debug-on    - Enable Xdebug"
+	@echo "  debug-off   - Disable Xdebug"
+	@echo "  logs        - Tail logs from all containers"
+	@echo "  logs-app    - Tail app container logs"
+	@echo "  logs-nginx  - Tail nginx logs"
+	@echo "  prune       - Stop containers and remove volumes"
+	@echo "  playwright-install - Reinstall Playwright and Chromium"
 
 %:
 	@:
