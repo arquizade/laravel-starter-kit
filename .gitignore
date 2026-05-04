@@ -21,3 +21,6 @@ Homestead.yaml
 /.vscode
 /.zed
 /tmp
+
+mempalace.yaml
+entities.json
